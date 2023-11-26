@@ -269,8 +269,6 @@ namespace StudentsInternship.Views.AgreementsPages
                 err.AppendLine("Укажите контактное лицо");
             if (string.IsNullOrWhiteSpace(currentElem.ContactNumber))
                 err.AppendLine("Укажите контактный номер");
-            if (currentElem.NumberOfPeople == 0)
-                err.AppendLine("Укажите кол-во студентов для практики");
             if (string.IsNullOrWhiteSpace(currentElem.CompanyLegalAddress))
                 err.AppendLine("Укажите юридический адрес");
 
@@ -336,7 +334,7 @@ namespace StudentsInternship.Views.AgreementsPages
             StringBuilder err = new StringBuilder();
             if (string.IsNullOrWhiteSpace(currentElem.AgreementNumber))
                 err.AppendLine("Укажите номер договора");
-            else if (App.Context.Agreements.Any(p => p.AgreementNumber == currentElem.AgreementNumber))
+            else if (App.Context.Agreements.Any(p => p.AgreementNumber == currentElem.AgreementNumber) && agreementNumberBefore != currentElem.AgreementNumber)
                 err.AppendLine("Номер договора не может повторяться");
             if (cmbAgreementTypes.SelectedItem == null)
                 err.AppendLine("Укажите тип договора");
@@ -348,8 +346,8 @@ namespace StudentsInternship.Views.AgreementsPages
                 err.AppendLine("Укажите дату начала действия договора");
             if (currentElem.AgreementEndDate == null && cmbAgreementTypes.SelectedIndex != 3)
                 err.AppendLine("Укажите дату окончания действия договора");
-            if (currentElem.AgreementEndDate > currentElem.AgreementStartDate)
-                err.AppendLine("Дата окончания больше даты начала действия");
+            if (currentElem.AgreementEndDate < currentElem.AgreementStartDate)
+                err.AppendLine("Дата окончания меньше даты начала действия");
             if (string.IsNullOrWhiteSpace(currentElem.CompanyName))
                 err.AppendLine("Укажите название компании");
             if (string.IsNullOrWhiteSpace(currentElem.ContactPerson))
@@ -377,8 +375,12 @@ namespace StudentsInternship.Views.AgreementsPages
             currentElem.CompanyLegalAddress = currentElem.CompanyLegalAddress.Trim();
             currentElem.CompanyLegalAddress = Regex.Replace(currentElem.CompanyLegalAddress, @"\s+", " ");
 
-            currentElem.Remark = currentElem.Remark.Trim();
-            currentElem.Remark = Regex.Replace(currentElem.Remark, @"\s+", " ");
+            if (!string.IsNullOrWhiteSpace(currentElem.Remark))
+            {
+                currentElem.Remark = currentElem.Remark.Trim();
+                currentElem.Remark = Regex.Replace(currentElem.Remark, @"\s+", " ");
+            }
+
 
             App.Context.Agreements.Add(currentElem);
 
@@ -396,10 +398,15 @@ namespace StudentsInternship.Views.AgreementsPages
                 }
                 datagridList = new List<Specialties>();
                 specialtisAvailableList = App.Context.Specialties.ToList();
+                datagridSpecilities.ItemsSource = datagridList;
+                datagridSpecilities.Items.Refresh();
+                cmbSpecialities.ItemsSource = specialtisAvailableList;
+                cmbSpecialities.Items.Refresh();
                 currentElem = new Agreements();
                 currentElem.DateOfAgreement = DateTime.Today;
                 currentElem.AgreementStartDate = DateTime.Today;
                 currentElem.AgreementEndDate = DateTime.Today;
+                DataContext = currentElem;
             }
             catch (Exception ex)
             {

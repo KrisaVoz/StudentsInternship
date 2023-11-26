@@ -763,6 +763,11 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        
+        
+        <Style TargetType="{x:Type ComboBox}">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
         <!-- End: iToggleButton Style -->
         <!--#endregion SidePanelNav-->
     </Application.Resources>

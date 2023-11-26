@@ -123,6 +123,7 @@ namespace StudentsInternship.Views.PracticeSchedulesPages
                 currentElem = new PracticeSchedules();
                 currentElem.PracticeStartDate = DateTime.Today;
                 currentElem.PracticeEndDate = DateTime.Today;
+                DataContext = currentElem;
             }
             catch (Exception ex)
             {

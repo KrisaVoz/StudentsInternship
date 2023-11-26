@@ -32,8 +32,10 @@ namespace StudentsInternship.Views.StudentDistributionsPages
         public List<StudentsDistribution> studentsdistributionsList = new List<StudentsDistribution>();
         public List<EducationalOrganisations> educationalOrganisationsList = App.Context.EducationalOrganisations.ToList();
         public List<Groups> groupsList = App.Context.Groups.ToList();
-        public List<PracticeSchedules> practiceSchedulesList = App.Context.PracticeSchedules.ToList();
-        public List<Agreements> agreementsList = App.Context.Agreements.ToList();
+        public List<PracticeSchedules> practiceSchedulesContext = App.Context.PracticeSchedules.ToList();
+        public List<PracticeSchedules> practiceSchedulesReal = new List<PracticeSchedules>();
+        public List<Agreements> agreementsContext = App.Context.Agreements.ToList();
+        public List<Agreements> agreementsListBefore = new List<Agreements>();
         public List<Students> studentsList = new List<Students>();
         public List<Students> studentsContext = App.Context.Students.ToList();
 
@@ -58,101 +60,92 @@ namespace StudentsInternship.Views.StudentDistributionsPages
             DataContext = currentElem;
 
             CheckBoxCheck();
-
-            cmbEducationalOrganisation.ItemsSource = App.Context.EducationalOrganisations.ToList();
         }
         private void CheckBoxCheck()
         {
-            groupsReal.Clear();
-            educationalOrganisationsReal.Clear();
-            agreementsReal.Clear();
-            var today = DateTime.Today;
-
-            //Deleting schedules that is Expired
-            practiceSchedulesList = practiceSchedulesList.Where(p => p.PracticeEndDate.Date >= today).ToList();
-            foreach (var elem in practiceSchedulesList)
+            try
             {
-                if (groupsList.Any(p => p.PracticeSchedules == elem))
-                    groupsReal.Add(groupsList.First(p => p.PracticeSchedules == elem));
-            }
+                var today = DateTime.Today;
 
-            //Selecting groups that have unexpired practices
-            foreach(var elem in groupsReal)
-            {
-                if (educationalOrganisationsList.Any(p => p.Groups == elem))
-                    educationalOrganisationsReal.Add(educationalOrganisationsList.First(p => p.Groups == elem));
-            }
+                agreementsReal.Clear();
+                educationalOrganisationsReal.Clear();
+                groupsReal.Clear();
+                practiceSchedulesReal.Clear();
 
-            agreementsList = agreementsList.Where(p => p.AgreementEndDate.HasValue).ToList();
-
-            cmbEducationalOrganisation.ItemsSource = educationalOrganisationsList;
-
-            //Selecting educational organisations that have groups with unexpired practices
-            if (cmbEducationalOrganisation.SelectedItem != null)
-            {
-                groupsList = groupsList.Where(p => p.EducationalOrganisations == cmbEducationalOrganisation.SelectedItem).ToList();
-                cmbGroup.ItemsSource = groupsList;
-                cmbGroup.IsEnabled = true;
-            }
-            else
-            {
-                cmbGroup.SelectedItem = null;
-                cmbGroup.IsEnabled = false;
-            }
-
-            //Practice Schedules ComboBox stage
-            if (cmbGroup.IsEnabled == true && cmbGroup.SelectedItem != null)
-            {
-                practiceSchedulesList = practiceSchedulesList.Where(p => p.Groups == cmbGroup.SelectedItem).ToList();
-
-                if (distributionsList.Count > 1)
+                //Deleting schedules that is Expired
+                practiceSchedulesReal = practiceSchedulesContext.Where(p => p.PracticeEndDate.Date >= today).ToList();
+                foreach (var elem in practiceSchedulesReal)
                 {
-                    var selectedAgreement = (Agreements)cmbAgreement.SelectedItem;
-                    practiceSchedulesList = practiceSchedulesList.Where(p => p.PracticeEndDate <= selectedAgreement.AgreementEndDate).ToList();
+                    if (groupsList.Any(p => p.PracticeSchedules.Contains(elem)))
+                        groupsReal.Add(groupsList.First(p => p.PracticeSchedules.Contains(elem)));
                 }
 
-                cmbPracticesSchedules.ItemsSource = practiceSchedulesList;
-                cmbPracticesSchedules.IsEnabled = true;
-            }
-            else
-            {
-                cmbPracticesSchedules.SelectedItem = null;
-                cmbPracticesSchedules.IsEnabled = false;
-            }
-
-            //Agreements ComboBox stage
-            if (cmbPracticesSchedules.IsEnabled == true && cmbPracticesSchedules.SelectedItem != null)
-            {
-                var selectedGroup = (Groups)cmbGroup.SelectedItem;
-                var agreementSpecilalityList = App.Context.AgreementSpeciality.ToList();
-                var selectedPracticeSchedule = (PracticeSchedules)cmbPracticesSchedules.SelectedItem;
-
-                agreementsList = agreementsList.Where(p => p.AgreementEndDate.Value.Date >= selectedPracticeSchedule.PracticeEndDate).ToList();
-
-                agreementSpecilalityList = agreementSpecilalityList.Where(p => p.Specialties == selectedGroup.Specialties).ToList();
-                foreach (var elem in agreementSpecilalityList)
+                //Selecting groups that have unexpired practices
+                foreach (var elem in groupsReal)
                 {
-                    if (agreementsList.Any(p => p.AgreementSpeciality.Contains(elem)))
-                        agreementsReal.Add(agreementsList.First(p => p.AgreementSpeciality.Contains(elem)));
+                    if (educationalOrganisationsList.Any(p => p.Groups.Contains(elem)) && !educationalOrganisationsReal.Any(x => x.Groups.Contains(elem)))
+                        educationalOrganisationsReal.Add(educationalOrganisationsList.First(p => p.Groups.Contains(elem)));
                 }
 
+                agreementsListBefore = agreementsContext.Where(p => p.AgreementEndDate.HasValue).ToList();
 
-                //Deleting the agreement that is used in these practice schedule(-es)
-                if (distributionsList.Count > 0)
+                cmbEducationalOrganisation.ItemsSource = educationalOrganisationsReal;
+
+                //Selecting educational organisations that have groups with unexpired practices
+                if (cmbEducationalOrganisation.SelectedItem != null)
                 {
-                    foreach(var tempA in distributionsList)
-                    {
-                        foreach (var elem in distributionsContext.Where(p => p.PracticeSchedules == tempA.PracticeSchedules).ToList())
-                        {
-                            if (agreementsReal.Any(p => p.AgreementNumber == elem.AgreementID))
-                            {
-                                agreementsReal.Remove(agreementsReal.First(p => p.AgreementNumber == elem.AgreementID));
-                            }
-                        }
-                    }
+                    groupsReal = groupsReal.Where(p => p.EducationalOrganisations == cmbEducationalOrganisation.SelectedItem).ToList();
+                    cmbGroup.ItemsSource = groupsReal;
+                    cmbGroup.IsEnabled = true;
                 }
                 else
                 {
+                    cmbGroup.SelectedItem = null;
+                    cmbGroup.IsEnabled = false;
+                }
+
+                //Practice Schedules ComboBox stage
+                if (cmbGroup.SelectedItem != null)
+                {
+                    practiceSchedulesReal = practiceSchedulesReal.Where(p => p.Groups == cmbGroup.SelectedItem).ToList();
+
+                    if (distributionsList.Count > 1)
+                    {
+                        var selectedAgreement = (Agreements)cmbAgreement.SelectedItem;
+                        practiceSchedulesReal = practiceSchedulesReal.Where(p => p.PracticeEndDate <= selectedAgreement.AgreementEndDate).ToList();
+                    }
+
+                    cmbPracticesSchedules.ItemsSource = practiceSchedulesReal;
+                    cmbPracticesSchedules.IsEnabled = true;
+                }
+                else
+                {
+                    cmbPracticesSchedules.SelectedItem = null;
+                    cmbPracticesSchedules.IsEnabled = false;
+                }
+
+                //Agreements ComboBox stage
+                if (cmbPracticesSchedules.SelectedItem != null)
+                {
+                    var selectedGroup = (Groups)cmbGroup.SelectedItem;
+                    var agreementSpecilalityList = App.Context.AgreementSpeciality.ToList();
+                    var selectedPracticeSchedule = (PracticeSchedules)cmbPracticesSchedules.SelectedItem;
+
+                    agreementsListBefore = agreementsListBefore.Where(p => p.AgreementEndDate.Value.Date >= selectedPracticeSchedule.PracticeEndDate).ToList();
+
+                    agreementSpecilalityList = agreementSpecilalityList.Where(p => p.Specialties == selectedGroup.Specialties).ToList();
+                    foreach (var elem in agreementSpecilalityList)
+                    {
+                        if (agreementsListBefore.Any(p => p.AgreementSpeciality.Contains(elem)))
+                            agreementsReal.Add(agreementsListBefore.First(p => p.AgreementSpeciality.Contains(elem)));
+                    }
+                    if (agreementsReal.Count < 1)
+                    {
+                        MessageBox.Show("Не удалось найти актуальные договоры для этой специальности");
+                    }
+
+
+                    //Deleting the agreement that is used in these practice schedule(-es)
                     foreach (var elem in distributionsContext.Where(p => p.PracticeSchedules == selectedPracticeSchedule).ToList())
                     {
                         if (agreementsReal.Any(p => p.AgreementNumber == elem.AgreementID))
@@ -160,45 +153,47 @@ namespace StudentsInternship.Views.StudentDistributionsPages
                             agreementsReal.Remove(agreementsReal.First(p => p.AgreementNumber == elem.AgreementID));
                         }
                     }
+
+
+                    if (cmbAgreement.SelectedItem == null)
+                    {
+                        if (agreementsReal.Count > 0)
+                        {
+                            tbPeopleOnAgreement.Text = "0";
+                            txtResidenceRequired.Text = "?";
+                            cmbAgreement.ItemsSource = agreementsReal;
+                            cmbAgreement.IsEnabled = true;
+                        }
+                        else
+                        {
+                            cmbAgreement.IsEnabled = false;
+                            txtResidenceRequired.Text = "?";
+                            MessageBox.Show("Не удалось найти неиспользованые договоры для этой практики");
+                        }
+                    }
+
+
                 }
 
-                if (agreementsReal.Count > 0)
+                //Students ComboBox stage
+                if (cmbAgreement.SelectedItem != null)
                 {
-                    tbPeopleOnAgreement.Text = "0";
-                    txtResidenceRequired.Text = "?";
-                    cmbAgreement.ItemsSource = agreementsReal;
-                    cmbAgreement.IsEnabled = true;
-                }
-                else
-                {
-                    cmbAgreement.IsEnabled = false;
-                    txtResidenceRequired.Text = "?";
-                    tbPeopleOnAgreement.Text = $"Актуальных договоров для специальности {selectedGroup.Specialties.NumberNameSpeciality} - не найдено";
-                }
+                    var selectedPracticeSchedule = (PracticeSchedules)cmbPracticesSchedules.SelectedItem;
+                    var selectedAgreement = (Agreements)cmbAgreement.SelectedItem;
+                    var selectedGroup = (Groups)cmbGroup.SelectedItem;
+                    studentsList = studentsContext.Where(p => p.Groups == selectedGroup).ToList();
 
-            }
+                    if (selectedAgreement.NumberOfPeople > 0)
+                    {
+                        tbPeopleOnAgreement.Text = selectedAgreement.NumberOfPeople + "";
+                    }
+                    else
+                    {
+                        tbPeopleOnAgreement.Text = "Не указано";
+                    }
+                    cmbStudents.IsEnabled = true;
 
-            //Students ComboBox stage
-            if (cmbAgreement.SelectedItem != null)
-            {
-                var selectedPracticeSchedule = (PracticeSchedules)cmbPracticesSchedules.SelectedItem;
-                var selectedAgreement = (Agreements)cmbAgreement.SelectedItem;
-                var selectedGroup = (Groups)cmbGroup.SelectedItem;
-                studentsList = studentsContext.Where(p => p.Groups == selectedGroup).ToList();
-                
-                if (selectedAgreement.NumberOfPeople > 0)
-                {
-                    tbPeopleOnAgreement.Text = selectedAgreement.NumberOfPeople + "";
-                }
-                else
-                {
-                    tbPeopleOnAgreement.Text = "Не указано";
-                }
-                cmbStudents.IsEnabled = true;
-
-                //Deleting student that is used in previous practice distributions
-                if (distributionsList.Count < 1)
-                {
+                    //Deleting student that is used in previous practice distributions
                     foreach (var elem in distributionsContext.Where(p => p.PracticeSchedules == selectedPracticeSchedule).ToList())
                     {
                         foreach (var item in studentsDistributionContext.Where(p => p.PracticeDistributions == elem))
@@ -209,46 +204,39 @@ namespace StudentsInternship.Views.StudentDistributionsPages
                             }
                         }
                     }
-                }
-                else
-                {
-                    foreach (var practiceDist in distributionsList)
+
+
+                    if (selectedAgreement.IsRegistrationRequired)
                     {
-                        foreach (var elem in distributionsContext.Where(p => p.PracticeSchedules == practiceDist.PracticeSchedules).ToList())
-                        {
-                            foreach (var item in studentsDistributionContext.Where(p => p.PracticeDistributions == elem))
-                            {
-                                if (studentsList.Any(p => p.ID == item.StudentID))
-                                {
-                                    studentsList.Remove(studentsList.First(p => p.ID == item.StudentID));
-                                }
-                            }
-                        }
+                        studentsList = studentsList.Where(p => p.ResidenceRegistration == true).ToList();
+                        txtResidenceRequired.Text = "Необходима";
                     }
-                }
+                    else
+                    {
+                        txtResidenceRequired.Text = "Не обязательна";
+                    }
 
-
-                if (selectedAgreement.IsRegistrationRequired)
-                {
-                    studentsList = studentsList.Where(p => p.ResidenceRegistration == true).ToList();
-                    txtResidenceRequired.Text = "Необходима";
+                    cmbStudents.ItemsSource = studentsList;
                 }
                 else
                 {
-                    txtResidenceRequired.Text = "Не обязательна";
+                    tbPeopleOnAgreement.Text = "*";
+                    cmbStudents.IsEnabled = false;
                 }
-
-                cmbStudents.ItemsSource = studentsList;
+                if (datagridSpecilities.Items.Count < 1 && cmbEducationalOrganisation.SelectedItem != null && cmbAgreement.SelectedItem != null)
+                {
+                    cmbAgreement.IsEnabled = true;
+                    cmbEducationalOrganisation.IsEnabled = true;
+                }
+                cmbAgreement.Items.Refresh();
+                cmbEducationalOrganisation.Items.Refresh();
+                cmbGroup.Items.Refresh();
+                cmbPracticesSchedules.Items.Refresh();
+                cmbStudents.Items.Refresh();
             }
-            else
+            catch (Exception ex)
             {
-                tbPeopleOnAgreement.Text = "*";
-                cmbStudents.IsEnabled = false;
-            }
-            if (datagridSpecilities.Items.Count < 1)
-            {
-                cmbAgreement.IsEnabled = true;
-                cmbEducationalOrganisation.IsEnabled = true;
+                MessageBox.Show(ex.Message);
             }
         }
         private void cmbEducationalOrganisation_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -273,66 +261,75 @@ namespace StudentsInternship.Views.StudentDistributionsPages
 
         private void cmbStudents_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (cmbStudents.SelectedItem != null)
+            try
             {
-                cmbAgreement.IsEnabled = false;
-                cmbEducationalOrganisation.IsEnabled = false;
-                var selectedSchedule = (PracticeSchedules)cmbPracticesSchedules.SelectedItem;
-                var selectedAgreement = (Agreements)cmbAgreement.SelectedItem;
-                var studentSelected = (Students)cmbStudents.SelectedItem;
-                if (!distributionsList.Any(p => p.PracticeSchedules == selectedSchedule))
+                if (cmbStudents.SelectedItem != null)
                 {
-                    PracticeDistributions practicedistributionAdd = new PracticeDistributions();
-                    practicedistributionAdd.PracticeSchedules = selectedSchedule;
-                    practicedistributionAdd.PracticeScheduleID = selectedSchedule.ID;
-                    practicedistributionAdd.Agreements = selectedAgreement;
-                    practicedistributionAdd.AgreementID = selectedAgreement.AgreementNumber;
+                    cmbAgreement.IsEnabled = false;
+                    cmbEducationalOrganisation.IsEnabled = false;
+                    cmbGroup.IsEnabled = false;
+                    cmbPracticesSchedules.IsEnabled = false;
+                    var selectedSchedule = (PracticeSchedules)cmbPracticesSchedules.SelectedItem;
+                    var selectedAgreement = (Agreements)cmbAgreement.SelectedItem;
+                    var studentSelected = (Students)cmbStudents.SelectedItem;
+                    if (!distributionsList.Any(p => p.PracticeSchedules == selectedSchedule))
+                    {
+                        PracticeDistributions practicedistributionAdd = new PracticeDistributions();
+                        practicedistributionAdd.PracticeSchedules = selectedSchedule;
+                        practicedistributionAdd.PracticeScheduleID = selectedSchedule.ID;
+                        practicedistributionAdd.Agreements = selectedAgreement;
+                        practicedistributionAdd.AgreementID = selectedAgreement.AgreementNumber;
 
-                    distributionsList.Add(practicedistributionAdd);
-                    distributionsContext.Add(practicedistributionAdd);
+                        distributionsList.Add(practicedistributionAdd);
+                        distributionsContext.Add(practicedistributionAdd);
 
-                    StudentsDistribution studentInDistribution = new StudentsDistribution();
-                    studentInDistribution.PracticeDistributions = practicedistributionAdd;
-                    studentInDistribution.Students = studentSelected;
-                    studentInDistribution.StudentID = studentSelected.ID;
+                        StudentsDistribution studentInDistribution = new StudentsDistribution();
+                        studentInDistribution.PracticeDistributions = practicedistributionAdd;
+                        studentInDistribution.Students = studentSelected;
+                        studentInDistribution.StudentID = studentSelected.ID;
 
-                    studentsdistributionsList.Add(studentInDistribution);
-                    studentsDistributionContext.Add(studentInDistribution);
+                        studentsdistributionsList.Add(studentInDistribution);
+                        studentsDistributionContext.Add(studentInDistribution);
 
-                    practicedistributionAdd.StudentsDistribution.Add(studentInDistribution);
+                        practicedistributionAdd.StudentsDistribution.Add(studentInDistribution);
 
-                    App.Context.PracticeDistributions.Add(practicedistributionAdd);
-                    App.Context.StudentsDistribution.Add(studentInDistribution);
+                        App.Context.PracticeDistributions.Add(practicedistributionAdd);
+                        App.Context.StudentsDistribution.Add(studentInDistribution);
 
-                    //Delete the selected student
-                    studentsList.Remove(studentSelected);
+                        //Delete the selected student
+                        studentsList.Remove(studentSelected);
+                    }
+                    else
+                    {
+                        var practiceDistiribution = distributionsList.FirstOrDefault(p => p.Agreements == selectedAgreement && p.PracticeSchedules == selectedSchedule);
+                        StudentsDistribution studentInDistribution = new StudentsDistribution();
+                        studentInDistribution.PracticeDistributions = practiceDistiribution;
+                        studentInDistribution.Students = studentSelected;
+                        studentInDistribution.StudentID = studentSelected.ID;
+
+                        studentsdistributionsList.Add(studentInDistribution);
+                        studentsDistributionContext.Add(studentInDistribution);
+
+                        practiceDistiribution.StudentsDistribution.Add(studentInDistribution);
+
+                        App.Context.StudentsDistribution.Add(studentInDistribution);
+
+                        //Delete the selected student
+                        studentsList.Remove(studentSelected);
+                    }
                 }
-                else
-                {
-                    var practiceDistiribution = distributionsList.FirstOrDefault(p => p.Agreements == selectedAgreement && p.PracticeSchedules == selectedSchedule);
-                    StudentsDistribution studentInDistribution = new StudentsDistribution();
-                    studentInDistribution.PracticeDistributions = practiceDistiribution;
-                    studentInDistribution.Students = studentSelected;
-                    studentInDistribution.StudentID = studentSelected.ID;
 
-                    studentsdistributionsList.Add(studentInDistribution);
-                    studentsDistributionContext.Add(studentInDistribution);
+                cmbStudents.ItemsSource = studentsList;
+                cmbStudents.Items.Refresh();
+                cmbStudents.SelectedIndex = -1;
 
-                    practiceDistiribution.StudentsDistribution.Add(studentInDistribution);
-
-                    App.Context.StudentsDistribution.Add(studentInDistribution);
-
-                    //Delete the selected student
-                    studentsList.Remove(studentSelected);
-                }
+                datagridSpecilities.ItemsSource = distributionsList;
+                datagridSpecilities.Items.Refresh();
             }
-
-            cmbStudents.ItemsSource = studentsList;
-            cmbStudents.Items.Refresh();
-            cmbStudents.SelectedIndex = -1;
-
-            datagridSpecilities.ItemsSource = distributionsList;
-            datagridSpecilities.Items.Refresh();
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private void BtnDelete_Click(object sender, RoutedEventArgs e)
@@ -348,6 +345,12 @@ namespace StudentsInternship.Views.StudentDistributionsPages
                         App.Context.PracticeDistributions.Remove(item);
                         distributionsContext.Remove(item);
                         distributionsList.Remove(item);
+                        
+                        foreach (var elem in studentsdistributionsList)
+                        {
+                            studentsDistributionContext.Remove(elem);
+                        }
+                        studentsdistributionsList.Clear();
                     }
 
                     try
@@ -355,7 +358,11 @@ namespace StudentsInternship.Views.StudentDistributionsPages
                         MessageBox.Show("Данные удалены!");
                         if (distributionsList.Count < 1)
                         {
-                            cmbAgreement.IsEnabled = true;
+                            cmbEducationalOrganisation.SelectedItem = null;
+                            cmbAgreement.SelectedItem = null;
+                            cmbGroup.SelectedItem = null;
+                            cmbPracticesSchedules.SelectedItem = null;
+
                             cmbEducationalOrganisation.IsEnabled = true;
                         }
                         datagridSpecilities.ItemsSource = distributionsList;
@@ -419,6 +426,19 @@ namespace StudentsInternship.Views.StudentDistributionsPages
         }
         private void BtnSaveAndNew_Click(object sender, RoutedEventArgs e)
         {
+            // Check if fields are filled
+            StringBuilder err = new StringBuilder();
+            if (distributionsList.Count < 1)
+                err.AppendLine("Добавьте хотя бы одну практику");
+            if (studentsdistributionsList.Count < 1)
+                err.AppendLine("Добавьте хотя бы одного студента");
+
+            if (err.Length > 0)
+            {
+                MessageBox.Show(err.ToString(), "Ошибка!", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
             string directory = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory));
             string filetempfile = directory + "tempFile.docx";
             try

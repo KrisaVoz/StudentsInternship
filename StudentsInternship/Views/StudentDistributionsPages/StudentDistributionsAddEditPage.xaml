@@ -74,8 +74,8 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Группа" Width="auto" Binding="{Binding Path=PracticeSchedules.Groups.GroupNumberName}"/>
                         <DataGridTextColumn Header="Специальность" Width="auto" Binding="{Binding Path=PracticeSchedules.Groups.Specialties.NumberNameSpeciality}"/>
-                        <DataGridTextColumn Header="Дата начала" Width="auto" Binding="{Binding Path=PracticeSchedules.PracticeStartDate}"/>
-                        <DataGridTextColumn Header="Дата конца" Width="auto" Binding="{Binding Path=PracticeSchedules.PracticeEndDate}"/>
+                        <DataGridTextColumn Header="Дата начала" Width="auto" Binding="{Binding Path=PracticeSchedules.PracticeStartDate, ConverterCulture='ru-RU', StringFormat=d}"/>
+                        <DataGridTextColumn Header="Дата конца" Width="auto" Binding="{Binding Path=PracticeSchedules.PracticeEndDate, ConverterCulture='ru-RU', StringFormat=d}"/>
 
                         <DataGridTextColumn Header="Студенты" Width="auto" Binding="{Binding Path=StudentsList}"/>
                     </DataGrid.Columns>

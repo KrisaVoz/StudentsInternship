@@ -155,7 +155,8 @@ namespace StudentsInternship.Views.SpecialitiesPages
             {
                 App.Context.SaveChanges();
                 MessageBox.Show("Данные сохранены");
-                currentElem = new Specialties();
+                currentElem = new Specialties(); 
+                DataContext = currentElem;
             }
             catch (Exception ex)
             {

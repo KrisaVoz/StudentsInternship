@@ -121,6 +121,7 @@ namespace StudentsInternship.Views.EduInstitutionsPages
                 App.Context.SaveChanges();
                 MessageBox.Show("Данные сохранены");
                 currentElem = new EducationalOrganisations();
+                DataContext = currentElem;
             }
             catch (Exception ex)
             {

@@ -213,6 +213,7 @@ namespace StudentsInternship.Views.StudentsPages
                 App.Context.SaveChanges();
                 MessageBox.Show("Данные сохранены");
                 currentElem = new Students();
+                DataContext = currentElem;
             }
             catch (Exception ex)
             {

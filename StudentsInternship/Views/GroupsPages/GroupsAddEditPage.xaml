@@ -18,7 +18,7 @@
                     <Border Style="{StaticResource blockBorderAddEdit}">
                         <TextBlock Style="{StaticResource blockAddEdit}" Text="Группа"/>
                     </Border>
-                    <TextBox Style="{StaticResource txtboxAddEdit}" Text="{Binding Surname}" DataObject.Pasting="GroupNumberPastingHandler" PreviewKeyDown="TextBox_PreviewKeyDown" PreviewTextInput="GroupNumberValidationTextBox" MaxLength="200"/>
+                    <TextBox Style="{StaticResource txtboxAddEdit}" Text="{Binding GroupNumberName}" DataObject.Pasting="GroupNumberPastingHandler" PreviewKeyDown="TextBox_PreviewKeyDown" PreviewTextInput="GroupNumberValidationTextBox" MaxLength="200"/>
                 </StackPanel>
 
                 <StackPanel Margin="0 10">

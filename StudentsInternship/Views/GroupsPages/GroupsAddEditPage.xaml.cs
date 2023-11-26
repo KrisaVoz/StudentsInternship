@@ -135,6 +135,7 @@ namespace StudentsInternship.Views.GroupsPages
                 App.Context.SaveChanges();
                 MessageBox.Show("Данные сохранены");
                 currentElem = new Groups();
+                DataContext = currentElem;
             }
             catch (Exception ex)
             {

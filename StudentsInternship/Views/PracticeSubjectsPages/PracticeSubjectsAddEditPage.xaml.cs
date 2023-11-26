@@ -121,6 +121,7 @@ namespace StudentsInternship.Views.PracticeSubjectsPages
                 App.Context.SaveChanges();
                 MessageBox.Show("Данные сохранены");
                 currentElem = new PracticeSubjects();
+                DataContext = currentElem;
             }
             catch (Exception ex)
             {
